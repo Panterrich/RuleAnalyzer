@@ -1,0 +1,367 @@
+\documentclass[10pt]{beamer}
+
+\usepackage{paratype}
+\RequirePackage{cmap}
+\RequirePackage[T2A]{fontenc}
+\RequirePackage[utf8]{inputenc}
+
+% Set up fonts
+%\RequirePackage{paratype} % Arial-like sans serif font
+%\RequirePackage{DejaVuSansMono} % Free widespread monospace font with cyrillic support
+%\RequirePackage{nimbussans} % Helvetica clone
+\RequirePackage[bold,light]{nimbusmono} % Courier clone
+%\RequirePackage{tempora}  % "Times" font
+
+\RequirePackage[english,russian]{babel}
+
+\usepackage{amsmath,mathrsfs,amsfonts,amssymb, mathtools}
+\usepackage{graphicx, epsfig}
+\usepackage{subfig}
+\usepackage{setspace}
+\usepackage{multirow}
+\captionsetup{labelformat=empty}
+\usepackage{wrapfig}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Java,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\usepackage{color, colortbl}
+\definecolor{lightRed}{RGB}{240, 170, 150}
+\definecolor{lightGreen}{RGB}{170, 230, 150}
+\definecolor{lightYellow}{RGB}{240, 230, 180}
+
+\usepackage{changepage}
+
+\setbeamerfont{frametitle}{size=\normalsize,family=\sffamily}
+\usetheme{Warsaw}%{Singapore}%{Warsaw}%{Warsaw}%{Darmstadt}
+\usecolortheme{sidebartab}
+\setbeamertemplate{footline}[author]
+\expandafter\def\expandafter\insertshorttitle\expandafter{%
+	\insertshorttitle\hfill%
+	\insertframenumber\,/\,\inserttotalframenumber}
+
+\definecolor{beamer@blendedblue}{RGB}{3,91,170}
+\setbeamercolor{color1}{bg=beamer@blendedblue,fg=white}
+% отключить клавиши навигации
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage{appendixnumberbeamer}
+\usepackage{booktabs}
+\usepackage[scale=2]{ccicons}
+
+\usepackage{pgfplots}
+\usepgfplotslibrary{dateplot}
+
+\usepackage{xspace}
+\newcommand{\themename}{\textbf{\textsc{metropolis}}\xspace}
+
+\usepackage{svg}
+\usepackage{todonotes}
+
+\AtBeginSection[]{}
+
+\setbeamertemplate{section in toc}{%
+  \alert{$\bullet$}~\inserttocsection}
+
+\graphicspath{{images/}{images2/}{../images/}}
+
+\usepackage{makecell}
+\usepackage{changepage}
+
+\title[]{Применение методов формальной верификации для анализа правил фильтрации сетевого трафика}
+%\subtitle{Подназвание доклада}
+
+\author{Дурнов Алексей Николаевич}
+
+% Russian
+\institute[МФТИ]{
+    Московский физико-технический институт\\
+    Физтех-школа радиотехники и компьютерных технологий\\
+    Кафедра инфокоммуникационных систем и сетей
+    \vspace{0.3cm} \\
+    \textbf{Научный руководитель:} к.ф-м.н. Ефанов Николай Николаевич \\
+    \vspace{0.3cm} \\
+    \textbf{Консультант:} Ларин Дмитрий Викторович
+
+    }
+
+\date{Москва, 2026 г.}
+
+\setbeamercolor{footline}{fg=black}
+
+\setbeamerfont{footline}{series=\bfseries}
+
+\begin{document}
+
+\begin{frame}
+    \titlepage
+    \thispagestyle{empty}
+\end{frame}
+
+%% ==========================================================================
+%% СЛАЙД 1: Актуальность проблемы
+%% ==========================================================================
+\begin{frame}{Актуальность проблемы}
+    \begin{block}{Рост киберугроз}
+        \begin{itemize}
+            \item Ежегодный рост числа кибератак на 20--30\%
+            \item Усложнение атак: APT, многовекторные атаки, атаки на уровне приложений
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Средства защиты класса NGFW}
+        \begin{itemize}
+            \item Next-Generation Firewall становится одним из ключевых элементов сетевой безопасности
+            \item В России активно развивается рынок отечественных решений: Kaspersky, Positive Technologies, UserGate, Континент, Ideco и др.
+            \item Оставшиеся зарубежные решения: Check Point, Fortinet, Palo Alto Networks и др.
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Цена ошибки}
+        \begin{itemize}
+            \item Ошибки конфигурации политики безопасности --- одна из главных причин инцидентов ИБ
+            \item Средний ущерб от утечки данных в России - 11.5 млн рублей
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Цель и задачи}
+    \begin{block}{Цель:}
+        Разработка системы автоматического анализа и верификации правил фильтрации
+        сетевого трафика для выявления ошибок конфигурации
+    \end{block}
+
+    \begin{block}{Задачи:}
+        \begin{enumerate}
+            \item Провести исследование существующих методов анализа правил фильтрации
+            \item Разработать унифицированную вендоро-независимую модель представления правил различных форматов.
+            Модель должна поддерживать отечественные решения
+            \item Выбрать и адаптировать методы формальной верификации для анализа правил
+            \item Реализовать алгоритмы обнаружения ошибок конфигурации в наборах правил
+            \item Разработать прототип системы анализа правил фильтрации
+            \item Провести тестирование на реальных конфигурациях
+        \end{enumerate}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Правила фильтрации сетевого трафика}
+    \begin{block}{}
+        Политика сетевой безопасности в первую очередь определяется набором
+        \alert{правил фильтрации} сетевого трафика.
+    \end{block}
+
+    \begin{block}{Основные классы правил фильтрации:}
+        \begin{enumerate}
+            \item \textbf{ACL} (Access Control List) -- Cisco, Juniper, Huawei и др.
+            \begin{itemize}
+                \item Анализ на уровне \alert{L3--L4} (protocol, src/dst IP, src/dst port)
+                \item Небольшое количество дополнительных опций, простые сетевые объекты, наборы портов
+                \item \textbf{Линейный поиск} правил (first-match)
+            \end{itemize}
+            \item \textbf{iptables} -- Linux-системы, MikroTik
+            \begin{itemize}
+                \item Анализ на уровне \alert{L3--L4}
+                \item Дополнительные опции и простые объекты
+                \item Линейный поиск, но с \textbf{механизмом цепочек} (chains)
+            \end{itemize}
+            \item \textbf{Политики безопасности NGFW} -- Kaspersky, Positive Technologies, Fortinet и др.
+            \begin{itemize}
+                \item Анализ на уровне \alert{L7} (приложения, сервисы, пользователи)
+                \item Богатый набор объектов: зоны, приложения и др.
+                \item Часто используется нелинейный поиск правил
+            \end{itemize}
+        \end{enumerate}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Структура правил фильтрации}
+    \begin{itemize}
+        \item Приоритет правила
+        \item Действие - allow/deny/chain/return
+        \item Условие совпадения:
+        \begin{itemize}
+            \item Сетевые объекты (wildcard-маски, диапазоны IP, Geo-IP, FQDN)
+            \item Пользователи (группы, профили, идентификаторы)
+            \item Зоны безопасности и тип правила для работы с зонами
+            \item Сервисы (наборы портов и протоколов)
+            \item Приложения (прикладной протокол, сервис или группа приложений)
+        \end{itemize}
+        \item Расписания
+        \item Груповой профиль безопасности - объединяющий профиль движков безопасности (IDPS, AV, DNS Securiry)
+        \item Дополнительные данные (число срабатываний, время последнего срабатывания, время первого срабатывания и тд)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Типы ошибок конфигурации правил и объектов}
+    \begin{block}{Правил:}
+        \begin{itemize}
+            \item[\textcolor{red}{\textbf{!}}] \textbf{Shadowing} --- правило затенено, т.е. никогда не срабатывает
+            \item[\textcolor{red}{\textbf{!}}] \textbf{Redundancy} --- избыточное правило
+            \item[\textcolor{red}{\textbf{!}}] \textbf{Generalization} --- правило перекрывает более специфичное
+            \item[\textcolor{red}{\textbf{!}}] \textbf{Correlation} --- частичное пересечение правил
+            \item \textbf{Expired} --- правило c истекшим сроком действия
+            \item \textbf{Disabled} --- правило отключено
+            \item \textbf{Unused} --- правило не используется
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Объектов:}
+        \begin{itemize}
+            \item \textbf{Unattached} --- объект не привязан к правилу
+            \item \textbf{Duplicate} --- дублирующий объект
+            \item \textbf{Unused within rule} --- объект не используется с правилом
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Сравнение методов анализа правил фильтрации}
+    \begin{table}
+    \centering
+    \resizebox{1\textwidth}{!}{
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabular}{|p{3.2cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}
+        \hline
+        \textbf{Критерий} & \textbf{Семантический анализ} & \textbf{Тестирование на трафике} & \textbf{Формальная верификация} \\
+        \hline
+        Точность & Все типы ошибок & Не все логические ошибки & Все типы ошибок \\
+        \hline
+        Интерпретируемость & Легко & Может быть сложно & Легко \\
+        \hline
+        Требует реального трафика/исполнения & Нет & Да & Нет \\
+        \hline
+        Сложность & $O(n^2)$ & Высокая (много тестов) & Обычно $O(n)$, в худшем случае $O(n^2)$ \\
+        \hline
+        Проверка реального поведения & Нет & Да & Нет \\
+        \hline
+    \end{tabular}
+    }
+    \end{table}
+\end{frame}
+
+\begin{frame}{Формальная верификация}
+    \begin{block}{Header Space Analysis - метод моделирования сети}
+        \begin{itemize}
+            \item Каждый пакет представлен как точка в многомерном пространстве заголовков сетевого пакета: $\{0, 1\}^n$, где $n$ - число битов в заголовке
+            \item Для удобства вводят сцециальный символ wildcard $x$ для обозначения любого бита
+            \item На этом пространстве определены теоретико-множественные операции: пересечение, объединение, разность, дополнение и т.д.
+            \item Правило фильтрации - это функция отображения в этом простанстве.
+        \end{itemize}
+    \end{block}
+
+    Множество пакетов P - это множество точек в пространстве заголовков,
+    или объединение выражений с символами '0', '1' и 'x'. Это множество также можно задать с помощью булевой формулы.
+
+    \[
+        P = 0xx10 \cup 10100 \;\;\Longleftrightarrow\;\; F(X) = (\neg x_1 \land x_4 \land \neg x_5) \lor (x_1 \land \neg x_2 \land x_3 \land \neg x_4 \land \neg x_5)
+    \]
+\end{frame}
+
+\begin{frame}{Формальная верификация}
+    \begin{minipage}{\textwidth}
+        \begin{minipage}{0.5\textwidth}
+            \begin{block}{Binary Decision Diagrams (BDD)}
+                \begin{itemize}
+                    \item Компактное представление булевых функций
+                    \item Эффективные операции: пересечение, объединение, проверка эквивалентности
+                \end{itemize}
+            \end{block}
+        \end{minipage}%
+        \hfill
+        \begin{minipage}{0.67\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{bdd_my_example.png}
+        \end{minipage}
+    \end{minipage}
+\end{frame}
+
+\begin{frame}{Архитектура системы}
+    \begin{figure}
+        \centering
+        \includesvg[width=0.9\textwidth]{system_architecture.drawio.svg}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Система анализа правил фильтрации}
+    \centering
+    \hspace*{-0.7cm}
+    \includegraphics[width=0.95\paperwidth,height=\paperheight,keepaspectratio]{policy_analysis.jpg}
+\end{frame}
+
+\begin{frame}{Система анализа правил фильтрации}
+    \centering
+    \hspace*{-0.7cm}
+    \includegraphics[width=0.95\paperwidth,height=\paperheight,keepaspectratio]{security_policy.jpg}
+\end{frame}
+
+\begin{frame}{Заключение}
+    \begin{block}{Выполнено:}
+        \begin{itemize}
+            \item Проведён анализ существующих методов верификации правил фильтрации
+            \item Разработана унифицированная модель представления правил
+            \item Выбран и адаптирован метод на основе BDD для анализа конфликтов
+            \item Реализованы алгоритмы обнаружения основных типов аномалий
+            \item Разработан прототип системы анализа
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Практическая значимость:}
+        \begin{itemize}
+            \item Снижение рисков мисконфигурации сетевых устройств
+            \item Автоматизация аудита политик безопасности
+            \item Поддержка мультивендорной инфраструктуры, в том числе и отечественных решений
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Направления дальнейших исследований}
+    \begin{block}{}
+        \begin{itemize}
+            \item Оптимизация работы алгоритма для больших наборов правил (>100'000 правил)
+            \item Автоматическая оптимизация наборов с помощью анализа достижимости на модели сети
+            \item Интеграция с системами управления политиками (policy orchestration)
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}[plain]
+    \begin{center}
+        \vspace{2cm}
+        {\LARGE Спасибо за внимание!}
+        \vspace{1cm}
+    \end{center}
+\end{frame}
+
+\appendix
+
+\begin{frame}{BDD}
+    \begin{minipage}{0.48\textwidth}
+        \includegraphics[width=\textwidth]{BDD.png}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \includegraphics[width=\textwidth]{BDD_simple.svg.png}
+    \end{minipage}
+\end{frame}
+
+\end{document}
