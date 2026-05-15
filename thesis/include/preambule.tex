@@ -68,6 +68,10 @@
 %% Перенос знаков в формулах (по Львовскому)
 \newcommand*{\hm}[1]{#1\nobreak\discretionary{}{\hbox{$\mathsurround=0pt #1$}}{}}
 
+%% Моноширинный текст с возможностью переноса
+\usepackage{seqsplit}
+\newcommand{\tx}[1]{\texttt{\seqsplit{#1}}}
+
 %% дополнения
 \usepackage{float}   % Добавляет возможность работы с командой [H] которая улучшает расположение на странице
 \usepackage{gensymb} % Красивые градусы
@@ -102,6 +106,28 @@
 }
 
 \lstset{style=mystyle}
+
+\definecolor{codeorange}{rgb}{0.80,0.40,0.15}
+
+\lstdefinestyle{schemastyle}{
+    backgroundcolor=\color{white},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{codegreen},
+    morekeywords={Object,Array,String,Integer,Boolean,Number,Null,Enum},
+    stringstyle=\itshape\color{codeorange},
+    morestring=[b]",
+    numbers=none,
+    frame=none,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4,
+    keepspaces=true,
+    columns=flexible,
+    xleftmargin=12.5mm,
+    aboveskip=0.8em,
+    belowskip=0.8em,
+}
 
 % подключаем hyperref (для ссылок внутри  pdf)
 \usepackage[unicode, pdftex]{hyperref}
